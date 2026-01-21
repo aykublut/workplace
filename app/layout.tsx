@@ -39,10 +39,10 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico", // Tarayıcı sekmesindeki küçük ikon
     shortcut: "/favicon.ico",
-    apple: "/thumbnail.png", // iPhone ana ekran ikonu (Yüksek kalite)
+    apple: "/thumbnail.jpg", // iPhone ana ekran ikonu (Yüksek kalite)
     other: {
       rel: "apple-touch-icon-precomposed",
-      url: "/thumbnail.png",
+      url: "/thumbnail.jpg",
     },
   },
 
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "WorkPlace+",
-    startupImage: ["/thumbnail.png"],
+    startupImage: ["/thumbnail.jpg"],
   },
 
   // Telefon numaralarını otomatik link yapmayı engelle
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     siteName: "WorkPlace+",
     images: [
       {
-        url: "/thumbnail.png", // Paylaşılınca çıkacak büyük resim
+        url: "/thumbnail.jpg", // Paylaşılınca çıkacak büyük resim
         width: 1200,
         height: 630,
         alt: "WorkPlace+ Uygulama Önizlemesi",
