@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id // Clerk ID
+  email           String   @unique
+  name            String?
+  imageUrl        String?
+  language        String   @default("tr") // tr, en, es, fr
+  cultureContext  String   @default("Turkey")
+  religion        String   @default("Belirtilmemiş") // Yeni Alan
+  createdAt       DateTime @default(now())
+  
+  messages        Message[]
+  tasks           Task[]
+  quizResults     QuizResult[]
+}
+
+model Message {
+  id                String   @id @default(cuid())
+  content           String
+  translatedContent String?
+  senderId          String
+  sender            User     @relation(fields: [senderId], references: [id])
+  createdAt         DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model QuizResult {
+  id        String   @id @default(cuid())
+  score     Int      // Toplam Puan
+  totalQuestions Int // Kaç soru vardı?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

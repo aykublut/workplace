@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
+/* 1. Tema Ayarları (Tailwind v4) */
+@theme {
+  /* Layout.tsx'ten gelen Jakarta fontunu varsayılan sans fontu yapıyoruz */
+  --font-sans: var(--font-jakarta);
+
+  /* Eğer özel renkler eklemek istersen buraya ekleyebilirsin, 
+     ama Slate renkleri Tailwind'in içinde zaten var. */
+}
+
+/* 2. Renk Değişkenleri (Premium Slate Paleti) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Saf beyaz yerine Slate-50 (Hafif gri/mavi) */
+  --background: #f8fafc;
+  /* Simsiyah yerine Slate-900 (Derin lacivert/gri) */
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Karanlık mod desteği (İleride lazım olursa diye kalsın) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f172a;
+    --foreground: #f8fafc;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* 3. Temel Element Stilleri */
+/* v4'te @layer base kullanarak varsayılanları eziyoruz */
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    /* Metin seçim rengini bile kurumsal yapıyoruz */
+    @apply antialiased selection:bg-blue-100 selection:text-blue-900;
+  }
+
+  /* Başlıklar her zaman koyu ve sıkı harf aralıklı */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight text-slate-900;
+  }
+
+  /* Paragraflar okunabilir koyu gri */
+  p {
+    @apply text-slate-600 leading-relaxed;
+  }
+}
+
+/* 4. Scrollbar Özelleştirme (Mobil hissi için ince çubuk) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  /* Slate-300 */
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  /* Slate-400 */
 }
