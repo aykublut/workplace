@@ -36,13 +36,13 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/cover.jpg",
+    apple: "/thumbnail.jpg",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "WorkPlace+",
-    startupImage: ["/cover.jpg"],
+    startupImage: ["/thumbnail.jpg"],
   },
   openGraph: {
     title: "WorkPlace+ 🚀",
@@ -52,14 +52,14 @@ export const metadata: Metadata = {
     locale: "tr_TR",
     type: "website",
     images: [
-      { url: "/cover.jpg", width: 1200, height: 630, alt: "WorkPlace+" },
+      { url: "/thumbnail.jpg", width: 1200, height: 630, alt: "WorkPlace+" },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "WorkPlace+ 🚀",
     description: "Enterprise Team Management App",
-    images: ["/cover.jpg"],
+    images: ["/thumbnail.jpg"],
   },
 };
 
