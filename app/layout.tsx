@@ -6,6 +6,8 @@ import BottomNav from "@/components/BottomNav";
 import { currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { dictionaries, Language } from "@/lib/data";
+// YENİ: ThemeProvider eklendi
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -14,17 +16,14 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// --- 1. MOBİL GÖRÜNÜM (APP HİSSİ) ---
-// Zoom yapılmasını engeller, tam ekran hissi verir.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#ffffff",
+  themeColor: "#020617", // Dark moda uygun renk
 };
 
-// --- 2. METADATA & İKONLAR ---
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.VERCEL_URL
@@ -34,47 +33,33 @@ export const metadata: Metadata = {
   title: "WorkPlace+",
   description: "Enterprise Team Management",
   manifest: "/manifest.json",
-
-  // İkon Ayarları (Favicon ve App İkonu)
   icons: {
-    icon: "/favicon.ico", // Tarayıcı sekmesindeki küçük ikon
+    icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/thumbnail.jpg", // iPhone ana ekran ikonu (Yüksek kalite)
-    other: {
-      rel: "apple-touch-icon-precomposed",
-      url: "/thumbnail.jpg",
-    },
+    apple: "/cover.jpg",
   },
-
-  // Apple / iOS Özel Ayarları
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "WorkPlace+",
-    startupImage: ["/thumbnail.jpg"],
+    startupImage: ["/cover.jpg"],
   },
-
-  // Telefon numaralarını otomatik link yapmayı engelle
-  formatDetection: {
-    telephone: false,
-  },
-
-  // Sosyal Medya Paylaşımı (WhatsApp, Twitter, LinkedIn)
   openGraph: {
     title: "WorkPlace+ 🚀",
     description: "Takım yönetimi ve kültür simülasyonu uygulaması.",
     url: "/",
     siteName: "WorkPlace+",
-    images: [
-      {
-        url: "/thumbnail.jpg", // Paylaşılınca çıkacak büyük resim
-        width: 1200,
-        height: 630,
-        alt: "WorkPlace+ Uygulama Önizlemesi",
-      },
-    ],
     locale: "tr_TR",
     type: "website",
+    images: [
+      { url: "/cover.jpg", width: 1200, height: 630, alt: "WorkPlace+" },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WorkPlace+ 🚀",
+    description: "Enterprise Team Management App",
+    images: ["/cover.jpg"],
   },
 };
 
@@ -109,14 +94,23 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body
-          className={`${jakarta.className} antialiased bg-[#F1F5F9] text-slate-900`}
+          className={`${jakarta.className} antialiased bg-[#F1F5F9] dark:bg-[#020617] text-slate-900 dark:text-slate-50`}
         >
-          <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24 relative shadow-2xl border-x border-gray-100 overflow-hidden">
-            {children}
-            <BottomNav labels={navLabels} />
-          </div>
+          {/* ThemeProvider ile sarmaladık */}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {/* Mobil Kutu: Arka plan rengini değişkene (bg-background) bağladık */}
+            <div className="max-w-[480px] mx-auto min-h-screen bg-[var(--background)] pb-24 relative shadow-2xl border-x border-[var(--border)] overflow-hidden transition-colors duration-300">
+              {children}
+              <BottomNav labels={navLabels} />
+            </div>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

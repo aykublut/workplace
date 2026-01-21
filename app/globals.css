@@ -1,58 +1,72 @@
 @import "tailwindcss";
 
-/* 1. Tema Ayarları (Tailwind v4) */
 @theme {
-  /* Layout.tsx'ten gelen Jakarta fontunu varsayılan sans fontu yapıyoruz */
   --font-sans: var(--font-jakarta);
-
-  /* Eğer özel renkler eklemek istersen buraya ekleyebilirsin, 
-     ama Slate renkleri Tailwind'in içinde zaten var. */
 }
 
-/* 2. Renk Değişkenleri (Premium Slate Paleti) */
+/* RENK PALETİ TANIMLARI */
 :root {
-  /* Saf beyaz yerine Slate-50 (Hafif gri/mavi) */
+  /* LIGHT MODE (Varsayılan) */
   --background: #f8fafc;
-  /* Simsiyah yerine Slate-900 (Derin lacivert/gri) */
+  /* Slate-50 */
   --foreground: #0f172a;
+  /* Slate-900 */
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --border: #e2e8f0;
+  /* Slate-200 */
+  --muted: #f1f5f9;
+  /* Slate-100 */
+  --muted-foreground: #64748b;
+  /* Slate-500 */
 }
 
-/* Karanlık mod desteği (İleride lazım olursa diye kalsın) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-  }
+/* DARK MODE (Karanlık) */
+.dark {
+  --background: #020617;
+  /* Slate-950 (Çok koyu lacivert) */
+  --foreground: #f8fafc;
+  /* Slate-50 */
+
+  --card: #0f172a;
+  /* Slate-900 */
+  --card-foreground: #f8fafc;
+
+  --border: #1e293b;
+  /* Slate-800 */
+  --muted: #1e293b;
+  /* Slate-800 */
+  --muted-foreground: #94a3b8;
+  /* Slate-400 */
 }
 
-/* 3. Temel Element Stilleri */
-/* v4'te @layer base kullanarak varsayılanları eziyoruz */
+/* TEMEL AYARLAR */
 @layer base {
   body {
-    background: var(--background);
+    background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    /* Metin seçim rengini bile kurumsal yapıyoruz */
-    @apply antialiased selection:bg-blue-100 selection:text-blue-900;
+    @apply antialiased selection:bg-blue-500 selection:text-white;
   }
 
-  /* Başlıklar her zaman koyu ve sıkı harf aralıklı */
+  /* Başlıklar ve paragraflar otomatik renk alacak */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    @apply font-bold tracking-tight text-slate-900;
+    @apply font-bold tracking-tight text-[var(--foreground)];
   }
 
-  /* Paragraflar okunabilir koyu gri */
   p {
-    @apply text-slate-600 leading-relaxed;
+    @apply text-[var(--muted-foreground)] leading-relaxed;
   }
 }
 
-/* 4. Scrollbar Özelleştirme (Mobil hissi için ince çubuk) */
+/* SCROLLBAR (Karanlık moda uyumlu) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -63,12 +77,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  /* Slate-300 */
+  background: var(--muted-foreground);
   border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-  /* Slate-400 */
+  opacity: 0.5;
 }

@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { Home, MessageCircle, Gamepad2, User } from "lucide-react";
 import { clsx } from "clsx";
 
-// Bu bileşen artık dışarıdan "labels" adında bir veri bekliyor
 type BottomNavProps = {
   labels: {
     home: string;
@@ -25,18 +24,22 @@ export default function BottomNav({ labels }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 pb-4 pt-2 z-50">
+    // bg-white yerine bg-[var(--card)] ve border-t border-[var(--border)] yaptık
+    <nav className="fixed bottom-0 left-0 w-full bg-[var(--card)] border-t border-[var(--border)] pb-4 pt-2 z-50 transition-colors duration-300">
       <div className="flex justify-around items-center h-14 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (
             <Link
-              key={item.href} // Key olarak href daha güvenli çünkü isim değişiyor
+              key={item.href}
               href={item.href}
               className={clsx(
                 "flex flex-col items-center justify-center w-full h-full",
-                isActive ? "text-blue-600" : "text-gray-400",
+                // Aktif renk mavi, pasif renk muted-foreground (gri)
+                isActive
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-[var(--muted-foreground)]",
               )}
             >
               <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
