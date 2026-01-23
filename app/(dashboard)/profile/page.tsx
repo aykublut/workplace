@@ -3,6 +3,11 @@ import { User, Globe2, Moon, Save, BookOpen, Sun } from "lucide-react";
 import { dictionaries, Language } from "@/lib/data";
 import { ModeToggle } from "@/components/ModeToggle";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+// YENİ EKLENDİ:
+import { ProfileImageUploader } from "@/components/ProfileImageUploader";
+
+// ÖNEMLİ: Sayfanın önbelleğe alınmasını engeller, resim değişince anında görünür.
+export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const data = await getDashboardData();
@@ -18,12 +23,16 @@ export default async function ProfilePage() {
           {t.profile}
         </h1>
         <div className="bg-[var(--card)] p-6 rounded-3xl shadow-sm border border-[var(--border)] flex flex-col items-center w-full">
+          {/* --- DEĞİŞİKLİK BURADA: UPLOADER İLE SARMALADIK --- */}
           <div className="mb-3">
-            <ProfileAvatar
-              imageUrl={user.imageUrl || ""}
-              name={user.name || "User"}
-            />
+            <ProfileImageUploader>
+              <ProfileAvatar
+                imageUrl={user.imageUrl || ""}
+                name={user.name || "User"}
+              />
+            </ProfileImageUploader>
           </div>
+          {/* -------------------------------------------------- */}
 
           <h2 className="text-xl font-bold text-[var(--card-foreground)]">
             {user.name}
@@ -61,7 +70,6 @@ export default async function ProfilePage() {
             defaultValue={user.language}
             className="w-full p-4 bg-[var(--muted)] rounded-xl border border-[var(--border)] outline-none focus:border-blue-500 transition font-medium text-[var(--foreground)]"
           >
-            {/* BURADA ARTIK DEĞİŞKENLERİ KULLANIYORUZ */}
             <option value="tr">{t.language_tr}</option>
             <option value="en">{t.language_en}</option>
             <option value="es">{t.language_es}</option>
@@ -80,7 +88,6 @@ export default async function ProfilePage() {
             defaultValue={user.cultureContext}
             className="w-full p-4 bg-[var(--muted)] rounded-xl border border-[var(--border)] outline-none focus:border-purple-500 transition font-medium text-[var(--foreground)]"
           >
-            {/* BURADA ARTIK DEĞİŞKENLERİ KULLANIYORUZ */}
             <option value="Turkey">{t.region_turkey}</option>
             <option value="Europe">{t.region_europe}</option>
             <option value="USA">{t.region_usa}</option>
@@ -98,7 +105,6 @@ export default async function ProfilePage() {
             defaultValue={user.religion}
             className="w-full p-4 bg-[var(--muted)] rounded-xl border border-[var(--border)] outline-none focus:border-indigo-500 transition font-medium text-[var(--foreground)]"
           >
-            {/* BURADA ARTIK DEĞİŞKENLERİ KULLANIYORUZ */}
             <option value="Belirtilmemiş">{t.rel_unspecified}</option>
             <option value="Islam">{t.rel_islam}</option>
             <option value="Christianity">{t.rel_christianity}</option>
