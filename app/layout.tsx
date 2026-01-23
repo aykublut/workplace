@@ -6,7 +6,6 @@ import BottomNav from "@/components/BottomNav";
 import { currentUser } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { dictionaries, Language } from "@/lib/data";
-// YENİ: ThemeProvider eklendi
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -21,7 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#020617", // Dark moda uygun renk
+  themeColor: "#020617",
 };
 
 export const metadata: Metadata = {
@@ -43,23 +42,6 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "WorkPlace+",
     startupImage: ["/thumbnail.jpg"],
-  },
-  openGraph: {
-    title: "WorkPlace+ 🚀",
-    description: "Takım yönetimi ve kültür simülasyonu uygulaması.",
-    url: "/",
-    siteName: "WorkPlace+",
-    locale: "tr_TR",
-    type: "website",
-    images: [
-      { url: "/thumbnail.jpg", width: 1200, height: 630, alt: "WorkPlace+" },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "WorkPlace+ 🚀",
-    description: "Enterprise Team Management App",
-    images: ["/thumbnail.jpg"],
   },
 };
 
@@ -94,19 +76,21 @@ export default async function RootLayout({
 
   return (
     <ClerkProvider>
+      {/* suppressHydrationWarning Next-themes için zorunludur */}
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${jakarta.className} antialiased bg-[#F1F5F9] dark:bg-[#020617] text-slate-900 dark:text-slate-50`}
+          // DÜZELTME: Hardcoded renkler (bg-[#...]) silindi.
+          // Yerine 'bg-background text-foreground' kullanıldı.
+          className={`${jakarta.className} antialiased bg-background text-foreground`}
         >
-          {/* ThemeProvider ile sarmaladık */}
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            {/* Mobil Kutu: Arka plan rengini değişkene (bg-background) bağladık */}
-            <div className="max-w-[480px] mx-auto min-h-screen bg-[var(--background)] pb-24 relative shadow-2xl border-x border-[var(--border)] overflow-hidden transition-colors duration-300">
+            {/* Mobil Kutu: bg-background ile sistem rengini otomatik alır */}
+            <div className="max-w-[480px] mx-auto min-h-screen bg-background pb-16 relative shadow-2xl border-x border-border overflow-hidden transition-colors duration-300">
               {children}
               <BottomNav labels={navLabels} />
             </div>

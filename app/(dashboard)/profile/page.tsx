@@ -3,6 +3,7 @@ import { User, Globe2, Moon, Save, BookOpen, Sun } from "lucide-react";
 import { dictionaries, Language } from "@/lib/data";
 // YENİ: ModeToggle bileşenini çağır
 import { ModeToggle } from "@/components/ModeToggle";
+import { ProfileAvatar } from "@/components/ProfileAvatar";
 
 export default async function ProfilePage() {
   const data = await getDashboardData();
@@ -18,13 +19,15 @@ export default async function ProfilePage() {
           {t.profile}
         </h1>
         <div className="bg-[var(--card)] p-6 rounded-3xl shadow-sm border border-[var(--border)] flex flex-col items-center w-full">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[var(--background)] mb-3 shadow-lg">
-            <img
-              src={user.imageUrl || ""}
-              alt="Profile"
-              className="w-full h-full object-cover"
+          {/* --- DEĞİŞTİRİLEN KISIM: RESİM YERİNE BİLEŞEN GELDİ --- */}
+          <div className="mb-3">
+            <ProfileAvatar
+              imageUrl={user.imageUrl || ""}
+              name={user.name || "User"}
             />
           </div>
+          {/* ------------------------------------------------------ */}
+
           <h2 className="text-xl font-bold text-[var(--card-foreground)]">
             {user.name}
           </h2>

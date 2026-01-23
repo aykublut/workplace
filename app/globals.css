@@ -1,12 +1,49 @@
 @import "tailwindcss";
 
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: var(--font-jakarta);
+
+  /* RENK EŞLEŞTİRMELERİ */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* RENK PALETİ TANIMLARI */
+/* DEĞİŞKENLER (Hex kodları kullandım, Light/Dark burada ayarlı) */
 :root {
-  /* LIGHT MODE (Varsayılan) */
+  /* LIGHT MODE */
   --background: #f8fafc;
   /* Slate-50 */
   --foreground: #0f172a;
@@ -15,18 +52,36 @@
   --card: #ffffff;
   --card-foreground: #0f172a;
 
-  --border: #e2e8f0;
-  /* Slate-200 */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: #2563eb;
+  /* Blue-600 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+
   --muted: #f1f5f9;
-  /* Slate-100 */
   --muted-foreground: #64748b;
-  /* Slate-500 */
+
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2563eb;
+
+  --radius: 0.5rem;
 }
 
-/* DARK MODE (Karanlık) */
 .dark {
+  /* DARK MODE */
   --background: #020617;
-  /* Slate-950 (Çok koyu lacivert) */
+  /* Slate-950 */
   --foreground: #f8fafc;
   /* Slate-50 */
 
@@ -34,50 +89,36 @@
   /* Slate-900 */
   --card-foreground: #f8fafc;
 
-  --border: #1e293b;
-  /* Slate-800 */
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+
+  --primary: #3b82f6;
+  /* Blue-500 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+
   --muted: #1e293b;
-  /* Slate-800 */
   --muted-foreground: #94a3b8;
-  /* Slate-400 */
+
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+
+  --destructive: #7f1d1d;
+  --destructive-foreground: #f8fafc;
+
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #1d4ed8;
 }
 
-/* TEMEL AYARLAR */
 @layer base {
+  * {
+    @apply border-border;
+  }
+
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    @apply antialiased selection:bg-blue-500 selection:text-white;
+    @apply bg-background text-foreground font-sans antialiased;
   }
-
-  /* Başlıklar ve paragraflar otomatik renk alacak */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-bold tracking-tight text-[var(--foreground)];
-  }
-
-  p {
-    @apply text-[var(--muted-foreground)] leading-relaxed;
-  }
-}
-
-/* SCROLLBAR (Karanlık moda uyumlu) */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 3px;
-  opacity: 0.5;
 }

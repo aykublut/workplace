@@ -15,7 +15,18 @@ model User {
   language        String   @default("tr") // tr, en, es, fr
   cultureContext  String   @default("Turkey")
   religion        String   @default("Belirtilmemiş") // Yeni Alan
+  // --- YENİ EKLENEN ALANLAR ---
+  lastChatVisit  DateTime @default(now()) // (Önceki adımdan)
+  lastActiveAt   DateTime @default(now()) // "On App" mi "Working" mi ayrımı için
+  
+  // Özel Durumlar (Namaz, Yemek, Okul vb.)
+  customStatus   String?  // Örn: "LUNCH", "PRAYER", "CUSTOM"
+  statusMessage  String?  // Örn: "Çocuğu okuldan alıyorum"
+  statusExpires  DateTime? // Ne zaman bitecek?
+  // ----------------------------
   createdAt       DateTime @default(now())
+  
+
   
   messages        Message[]
   tasks           Task[]
