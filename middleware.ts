@@ -5,6 +5,9 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/webhooks(.*)",
+  "/manifest.json", // <-- EKLENDİ: Artık manifest dosyasına giriş yapmadan erişilebilir
+  "/thumbnail.jpg", // <-- EKLENDİ: İkon dosyasına erişim izni
+  "/favicon.ico", // <-- EKLENDİ: Favicon için garanti
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
