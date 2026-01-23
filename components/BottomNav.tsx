@@ -32,6 +32,7 @@ export default function BottomNav({ labels }: BottomNavProps) {
           const isActive = pathname === item.href;
           return (
             <Link
+              prefetch={true}
               key={item.href}
               href={item.href}
               className={clsx(
