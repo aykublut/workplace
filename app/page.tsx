@@ -241,7 +241,7 @@ export default async function Home() {
                         <h4 className="text-sm font-bold text-slate-900 flex gap-1 dark:text-white leading-tight">
                           {colleague.name}
                           {/* --- YENİ EKLENEN KISIM --- */}
-                          <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                          <span className="md:text-[9px] text-[7px] font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                             {colleague.cultureContext} / {colleague.religion}
                           </span>
                           {/* ------------------------- */}
