@@ -90,6 +90,28 @@ export const dictionaries = {
     next_event_end: "Paydos:",
     next_event_start: "Mesai Başlangıcı:",
     next_event_back: "Dönüş:",
+
+    // YENİ EKLENECEKLER:
+    language_tr: "Türkçe 🇹🇷",
+    language_en: "English 🇬🇧",
+    language_es: "Español 🇪🇸",
+    language_fr: "Français 🇫🇷",
+    language_pl: "Polski 🇵🇱",
+
+    region_turkey: "Türkiye / Ortadoğu",
+    region_europe: "Avrupa",
+    region_usa: "Amerika (ABD)",
+    region_asia: "Asya",
+
+    rel_unspecified: "Belirtilmemiş",
+    rel_islam: "İslam",
+    rel_christianity: "Hristiyanlık",
+    rel_judaism: "Yahudilik",
+    rel_hinduism: "Hinduizm",
+    rel_buddhism: "Budizm",
+    rel_secular: "Seküler / Diğer",
+    lightMode: "Aydınlık Mod",
+    darkMode: "Karanlık Mod",
   },
   en: {
     navHome: "Home",
@@ -176,6 +198,28 @@ export const dictionaries = {
     next_event_end: "Shift Ends:",
     next_event_start: "Shift Starts:",
     next_event_back: "Back in:",
+    // NEW ADDITIONS:
+    language_tr: "Turkish 🇹🇷",
+    language_en: "English 🇬🇧",
+    language_es: "Spanish 🇪🇸",
+    language_fr: "French 🇫🇷",
+    language_pl: "Polish 🇵🇱",
+
+    region_turkey: "Turkey / Middle East",
+    region_europe: "Europe",
+    region_usa: "America (USA)",
+    region_asia: "Asia",
+
+    rel_unspecified: "Unspecified",
+    rel_islam: "Islam",
+    rel_christianity: "Christianity",
+    rel_judaism: "Judaism",
+    rel_hinduism: "Hinduism",
+    rel_buddhism: "Buddhism",
+    rel_secular: "Secular / Other",
+
+    lightMode: "Light Mode",
+    darkMode: "Dark Mode",
   },
   es: {
     navHome: "Inicio",
@@ -262,6 +306,28 @@ export const dictionaries = {
     next_event_end: "Salida:",
     next_event_start: "Entrada:",
     next_event_back: "Regreso:",
+
+    language_tr: "Turco 🇹🇷",
+    language_en: "Inglés 🇬🇧",
+    language_es: "Español 🇪🇸",
+    language_fr: "Francés 🇫🇷",
+    language_pl: "Polaco 🇵🇱",
+
+    region_turkey: "Turquía / Oriente Medio",
+    region_europe: "Europa",
+    region_usa: "América (EE.UU.)",
+    region_asia: "Asia",
+
+    rel_unspecified: "No especificado",
+    rel_islam: "Islam",
+    rel_christianity: "Cristianismo",
+    rel_judaism: "Judaísmo",
+    rel_hinduism: "Hinduismo",
+    rel_buddhism: "Budismo",
+    rel_secular: "Secular / Otro",
+
+    lightMode: "Modo Claro",
+    darkMode: "Modo Oscuro",
   },
   fr: {
     navHome: "Accueil",
@@ -351,6 +417,27 @@ export const dictionaries = {
     next_event_end: "Fin de poste :",
     next_event_start: "Début de poste :",
     next_event_back: "Retour :",
+    language_tr: "Turc 🇹🇷",
+    language_en: "Anglais 🇬🇧",
+    language_es: "Espagnol 🇪🇸",
+    language_fr: "Français 🇫🇷",
+    language_pl: "Polonais 🇵🇱",
+
+    region_turkey: "Turquie / Moyen-Orient",
+    region_europe: "Europe",
+    region_usa: "Amérique (USA)",
+    region_asia: "Asie",
+
+    rel_unspecified: "Non spécifié",
+    rel_islam: "Islam",
+    rel_christianity: "Christianisme",
+    rel_judaism: "Judaïsme",
+    rel_hinduism: "Hindouisme",
+    rel_buddhism: "Bouddhisme",
+    rel_secular: "Laïque / Autre",
+
+    lightMode: "Mode Clair",
+    darkMode: "Mode Sombre",
   },
   pl: {
     navHome: "Start",
@@ -437,6 +524,28 @@ export const dictionaries = {
     next_event_end: "Koniec zmiany:",
     next_event_start: "Początek zmiany:",
     next_event_back: "Powrót:",
+
+    language_tr: "Turecki 🇹🇷",
+    language_en: "Angielski 🇬🇧",
+    language_es: "Hiszpański 🇪🇸",
+    language_fr: "Francuski 🇫🇷",
+    language_pl: "Polski 🇵🇱",
+
+    region_turkey: "Turcja / Bliski Wschód",
+    region_europe: "Europa",
+    region_usa: "Ameryka (USA)",
+    region_asia: "Azja",
+
+    rel_unspecified: "Nieokreślony",
+    rel_islam: "Islam",
+    rel_christianity: "Chrześcijaństwo",
+    rel_judaism: "Judaizm",
+    rel_hinduism: "Hinduizm",
+    rel_buddhism: "Buddyzm",
+    rel_secular: "Świecki / Inne",
+
+    lightMode: "Tryb Jasny",
+    darkMode: "Tryb Ciemny",
   },
 };
 

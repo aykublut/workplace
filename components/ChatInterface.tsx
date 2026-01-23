@@ -7,13 +7,12 @@ import {
   CheckCheck,
   Loader2,
   Sparkles,
-  ChevronDown,
-  Languages, // YENİ İKON
+  Languages,
 } from "lucide-react";
 import Image from "next/image";
-import { markMessagesAsRead, sendMessage, translateText } from "@/app/actions"; // translateText EKLENDİ
+import { markMessagesAsRead, sendMessage, translateText } from "@/app/actions";
 import { dictionaries, Language } from "@/lib/data";
-import Pusher from "pusher-js";
+import { pusherClient } from "@/lib/pusher"; // TEK MERKEZDEN BAĞLANTI (ÖNEMLİ)
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -24,10 +23,8 @@ type Message = {
   sender: {
     name: string | null;
     imageUrl: string | null;
-    // --- YENİ EKLENENLER ---
     cultureContext?: string | null;
     religion?: string | null;
-    // -----------------------
   };
 };
 
@@ -46,17 +43,12 @@ export default function ChatInterface({
   const scrollRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [isSending, setIsSending] = useState(false);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
-  // --- ÇEVİRİ STATE'LERİ ---
-  // Hangi mesajın çevrildiğini tutar: { "mesaj-id": "Çevrilmiş Metin" }
   const [translations, setTranslations] = useState<Record<string, string>>({});
-  // Hangi mesajın o an çevrilmekte olduğunu tutar (Loading için)
   const [translatingIds, setTranslatingIds] = useState<string[]>([]);
 
   const t = dictionaries[lang];
 
-  // 1. AUTO-SCROLL LOGIC
+  // 1. OTO-SCROLL
   const scrollToBottom = (smooth = true) => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -66,19 +58,8 @@ export default function ChatInterface({
     }
   };
 
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const isBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isBottom);
-    }
-  };
-
   useEffect(() => {
     scrollToBottom(false);
-  }, []);
-
-  useEffect(() => {
     markMessagesAsRead();
   }, []);
 
@@ -86,39 +67,41 @@ export default function ChatInterface({
     scrollToBottom(true);
   }, [messages]);
 
-  // 2. PUSHER REAL-TIME
+  // 2. REAL-TIME BAĞLANTI (GÜVENLİ VERSİYON)
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_PUSHER_KEY) return;
-
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "eu",
-    });
-
-    const channel = pusher.subscribe("chat-channel");
+    // Doğrudan 'new Pusher' oluşturmak yerine lib/pusher.ts'den geleni kullanıyoruz.
+    // Bu sayede "WebSocket closing" hataları engellenir.
+    const channel = pusherClient.subscribe("chat-channel");
 
     channel.bind("new-message", (data: Message) => {
       setMessages((prev) => {
+        // Çift mesaj kontrolü
         if (prev.find((m) => m.id === data.id)) return prev;
 
+        // Kendi gönderdiğimiz mesaj zaten ekranda mı? (Optimistic UI kontrolü)
         if (data.senderId === currentUserId) {
           const optimisticMatch = prev.find(
             (m) => m.id.startsWith("temp-") && m.content === data.content,
           );
           if (optimisticMatch) {
+            // Geçici mesajı gerçek veriyle değiştir
             return prev.map((m) => (m.id === optimisticMatch.id ? data : m));
           }
         }
         return [...prev, data];
       });
+
+      // Mesaj gelince sesi çalabilir veya titretme ekleyebilirsin
     });
 
+    // TEMİZLİK (Component kapanırsa bağlantıyı kes)
     return () => {
-      pusher.unsubscribe("chat-channel");
-      pusher.disconnect();
+      channel.unbind_all();
+      channel.unsubscribe();
     };
   }, [currentUserId]);
 
-  // 3. SEND MESSAGE
+  // 3. MESAJ GÖNDERME
   async function handleSendMessage(formData: FormData) {
     const content = formData.get("content") as string;
     if (!content.trim()) return;
@@ -126,23 +109,35 @@ export default function ChatInterface({
     setIsSending(true);
     formRef.current?.reset();
 
+    // Optimistic UI (Hemen ekrana bas)
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg: Message = {
       id: tempId,
       content: content,
       senderId: currentUserId,
       createdAt: new Date().toISOString(),
-      sender: { name: "Ben", imageUrl: null },
+      sender: {
+        name: "Ben",
+        imageUrl: null,
+        cultureContext: "Global",
+        religion: "-",
+      },
     };
 
     setMessages((prev) => [...prev, optimisticMsg]);
-    await sendMessage(formData);
-    setIsSending(false);
+
+    try {
+      await sendMessage(formData);
+    } catch (error) {
+      console.error("Mesaj gitmedi:", error);
+    } finally {
+      setIsSending(false);
+    }
   }
 
-  // --- ÇEVİRİ FONKSİYONU ---
+  // 4. ÇEVİRİ İŞLEMİ
   const handleTranslate = async (msgId: string, content: string) => {
-    // Eğer zaten çevrildiyse, eski haline (orijinale) döndür
+    // Zaten çevrildiyse geri al
     if (translations[msgId]) {
       const newTranslations = { ...translations };
       delete newTranslations[msgId];
@@ -150,7 +145,6 @@ export default function ChatInterface({
       return;
     }
 
-    // Çeviri işlemini başlat (Loading aç)
     setTranslatingIds((prev) => [...prev, msgId]);
 
     try {
@@ -159,7 +153,6 @@ export default function ChatInterface({
     } catch (error) {
       console.error("Çeviri hatası:", error);
     } finally {
-      // Loading kapat
       setTranslatingIds((prev) => prev.filter((id) => id !== msgId));
     }
   };
@@ -168,10 +161,7 @@ export default function ChatInterface({
     try {
       return new Date(dateInput).toLocaleTimeString(
         lang === "en" ? "en-US" : "tr-TR",
-        {
-          hour: "2-digit",
-          minute: "2-digit",
-        },
+        { hour: "2-digit", minute: "2-digit" },
       );
     } catch {
       return "";
@@ -220,7 +210,6 @@ export default function ChatInterface({
       {/* CHAT AREA */}
       <div
         ref={scrollRef}
-        onScroll={handleScroll}
         className="flex-1 overflow-y-auto pt-28 pb-32 px-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent z-10"
       >
         <AnimatePresence initial={false} mode="popLayout">
@@ -230,7 +219,6 @@ export default function ChatInterface({
               !isMe &&
               (index === 0 || messages[index - 1].senderId !== msg.senderId);
 
-            // Çeviri Durumu Kontrolü
             const isTranslated = !!translations[msg.id];
             const isTranslating = translatingIds.includes(msg.id);
             const displayedContent = isTranslated
@@ -273,20 +261,17 @@ export default function ChatInterface({
                 <div
                   className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[75%] sm:max-w-[65%]`}
                 >
-                  {/* --- BURAYI DEĞİŞTİRİYORUZ (İSİM VE BİLGİ SATIRI) --- */}
                   {!isMe && showAvatar && (
                     <div className="ml-3 mb-1 flex flex-wrap items-center gap-2">
                       <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold tracking-wide">
                         {msg.sender.name}
                       </span>
-                      {/* Din ve Kültür Rozeti */}
                       <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                         {msg.sender.cultureContext || "Global"} /{" "}
                         {msg.sender.religion || "-"}
                       </span>
                     </div>
                   )}
-                  {/* -------------------------------------------------- */}
 
                   <div
                     className={`
@@ -300,11 +285,9 @@ export default function ChatInterface({
                   >
                     {displayedContent}
 
-                    {/* TIMESTAMP & ICONS */}
                     <div
                       className={`flex items-center justify-end gap-2 mt-1.5 ${isMe ? "text-blue-100/70" : "text-slate-400"}`}
                     >
-                      {/* --- ÇEVİRİ BUTONU (YENİ) --- */}
                       {!isMe && (
                         <button
                           onClick={() => handleTranslate(msg.id, msg.content)}
