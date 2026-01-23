@@ -5,10 +5,12 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { pusherServer } from "@/lib/pusher";
 import { translate } from "google-translate-api-x";
+
 const prisma = new PrismaClient();
 
 // 1. KİMLİK DOĞRULAMA & SYNC
 async function getAuthenticatedUser() {
+  // DÜZELTME BURADA: auth() başına 'await' eklendi
   const { userId } = await auth();
   const user = await currentUser();
 
@@ -35,7 +37,7 @@ async function getAuthenticatedUser() {
   return dbUser;
 }
 
-// 2. PROFİL GÜNCELLEME (Dil, Din, Kültür)
+// 2. PROFİL GÜNCELLEME
 export async function updateProfileSettings(formData: FormData) {
   const language = formData.get("language") as string;
   const culture = formData.get("culture") as string;
@@ -48,7 +50,6 @@ export async function updateProfileSettings(formData: FormData) {
     data: { language, cultureContext: culture, religion },
   });
 
-  // !!! KRİTİK: TÜM UYGULAMANIN DİLİNİ ANINDA YENİLE !!!
   revalidatePath("/", "layout");
 }
 
@@ -83,10 +84,8 @@ export async function getDashboardData() {
     orderBy: { lastActiveAt: "desc" },
   });
 
-  // --- ŞİRKET ZAMAN ALGORİTMASI (DÜZELTİLDİ: TimeZone Eklendi) ---
+  // Şirket Zamanı
   const now = new Date();
-
-  // Şirket Merkez Saati: Türkiye (veya 'Europe/Warsaw' yapabilirsin)
   const companyTimeString = now.toLocaleString("en-US", {
     timeZone: "Europe/Istanbul",
   });
@@ -94,56 +93,46 @@ export async function getDashboardData() {
 
   const hour = companyTime.getHours();
   const minute = companyTime.getMinutes();
-  const timeVal = hour + minute / 60; // Ondalık saat (örn: 09:30 -> 9.5)
+  const timeVal = hour + minute / 60;
 
-  let companyStateKey = "status_off"; // Varsayılan: Kapalı
+  let companyStateKey = "status_off";
   let nextEventTime = "09:00";
   let nextEventLabelKey = "next_event_start";
-  let shiftProgress = 0; // İlerleme çubuğu (%)
-  let stateColor = "gray"; // UI rengi
+  let shiftProgress = 0;
+  let stateColor = "gray";
 
-  // 1. MESAİ ÖNCESİ (00:00 - 09:00)
   if (timeVal < 9) {
     companyStateKey = "status_off";
     nextEventTime = "09:00";
-    nextEventLabelKey = "next_event_start"; // "Mesai Başlangıcı"
+    nextEventLabelKey = "next_event_start";
     shiftProgress = 0;
     stateColor = "gray";
-  }
-  // 2. SABAH MESAİSİ (09:00 - 12:00)
-  else if (timeVal >= 9 && timeVal < 12) {
+  } else if (timeVal >= 9 && timeVal < 12) {
     companyStateKey = "status_working";
     nextEventTime = "12:00";
-    nextEventLabelKey = "next_event_lunch"; // "Öğle Yemeği"
+    nextEventLabelKey = "next_event_lunch";
     shiftProgress = ((timeVal - 9) / 3) * 100;
     stateColor = "blue";
-  }
-  // 3. ÖĞLE ARASI (12:00 - 13:00)
-  else if (timeVal >= 12 && timeVal < 13) {
+  } else if (timeVal >= 12 && timeVal < 13) {
     companyStateKey = "status_lunch";
     nextEventTime = "13:00";
-    nextEventLabelKey = "next_event_back"; // "Dönüş"
+    nextEventLabelKey = "next_event_back";
     shiftProgress = ((timeVal - 12) / 1) * 100;
     stateColor = "orange";
-  }
-  // 4. ÖĞLEDEN SONRA MESAİSİ (13:00 - 17:00)
-  else if (timeVal >= 13 && timeVal < 17) {
+  } else if (timeVal >= 13 && timeVal < 17) {
     companyStateKey = "status_working";
     nextEventTime = "17:00";
-    nextEventLabelKey = "next_event_end"; // "Paydos"
+    nextEventLabelKey = "next_event_end";
     shiftProgress = ((timeVal - 13) / 4) * 100;
     stateColor = "green";
-  }
-  // 5. MESAİ SONRASI (17:00 - 23:59)
-  else {
+  } else {
     companyStateKey = "status_off";
-    nextEventTime = "09:00"; // Yarın sabah
-    nextEventLabelKey = "next_event_start"; // "Mesai Başlangıcı"
+    nextEventTime = "09:00";
+    nextEventLabelKey = "next_event_start";
     shiftProgress = 100;
     stateColor = "gray";
   }
 
-  // Verileri paketle
   const companyStatus = {
     stateKey: companyStateKey,
     nextTime: nextEventTime,
@@ -161,27 +150,23 @@ export async function getDashboardData() {
     colleagues,
   };
 }
-// 4. QUIZ SONUCU KAYDETME
+
+// 4. QUIZ SONUCU
 export async function saveQuizResult(score: number, totalQuestions: number) {
   const user = await getAuthenticatedUser();
-
   await prisma.quizResult.create({
     data: { score, totalQuestions, userId: user.id },
   });
-
   revalidatePath("/learn");
 }
-// 2. YENİ FONKSİYON: MESAJLARI OKUNDU İŞARETLE
+
+// 5. MESAJ OKUNDU
 export async function markMessagesAsRead() {
   const user = await getAuthenticatedUser();
-
-  // Kullanıcının son sohbet ziyaretini "ŞU AN" olarak güncelle
   await prisma.user.update({
     where: { id: user.id },
     data: { lastChatVisit: new Date() },
   });
-
-  // Dashboard'daki kırmızı bildirimi anında yok etmek için
   revalidatePath("/");
 }
 
@@ -202,7 +187,7 @@ export async function getUserStats() {
   return { totalGames, avgScore };
 }
 
-// 5. GÖREVLER
+// 6. GÖREVLER
 export async function getTasks() {
   const user = await getAuthenticatedUser();
   return await prisma.task.findMany({
@@ -234,7 +219,7 @@ export async function deleteTask(taskId: string) {
   revalidatePath("/tasks");
 }
 
-// 6. MESAJLAR
+// 7. MESAJLAR (GET)
 export async function getMessages() {
   return await prisma.message.findMany({
     orderBy: { createdAt: "asc" },
@@ -243,8 +228,8 @@ export async function getMessages() {
         select: {
           name: true,
           imageUrl: true,
-          cultureContext: true, // Yeni
-          religion: true, // Yeni
+          cultureContext: true,
+          religion: true,
         },
       },
     },
@@ -252,32 +237,48 @@ export async function getMessages() {
   });
 }
 
+// 8. MESAJ GÖNDERME
 export async function sendMessage(formData: FormData) {
-  const user = await currentUser();
-  if (!user) return;
+  try {
+    const user = await currentUser();
 
-  const content = formData.get("content") as string;
-  if (!content) return;
+    if (!user || !user.id) {
+      console.error("HATA: Kullanıcı kimliği doğrulanamadı.");
+      return { success: false, error: "Unauthorized" };
+    }
 
-  // 1. Veritabanına Kayıt
-  const newMessage = await prisma.message.create({
-    data: {
-      content,
-      senderId: user.id,
-    },
-    include: {
-      sender: { select: { name: true, imageUrl: true } },
-    },
-  });
+    const content = formData.get("content") as string;
+    if (!content) return { success: false };
 
-  // 2. REAL-TIME TETİKLEME (Burası Yeni) 🚀
-  // "chat-channel" kanalındaki herkese "new-message" olayı gönder
-  await pusherServer.trigger("chat-channel", "new-message", newMessage);
+    const newMessage = await prisma.message.create({
+      data: {
+        content,
+        senderId: user.id,
+      },
+      include: {
+        sender: {
+          select: {
+            name: true,
+            imageUrl: true,
+            cultureContext: true,
+            religion: true,
+          },
+        },
+      },
+    });
 
-  return { success: true };
+    await pusherServer.trigger("chat-channel", "new-message", newMessage);
+
+    return { success: true };
+  } catch (error) {
+    console.error("SUNUCU HATASI (sendMessage):", error);
+    return { success: false, error: "Server Error" };
+  }
 }
-// 1. HEARTBEAT (Kullanıcı uygulamadaysa sürekli bunu çağıracağız)
+
+// 9. HEARTBEAT
 export async function updateHeartbeat() {
+  // DÜZELTME BURADA: auth() başına 'await' eklendi
   const { userId } = await auth();
   if (!userId) return;
 
@@ -287,21 +288,19 @@ export async function updateHeartbeat() {
   });
 }
 
-// 2. DURUM AYARLAMA
+// 10. DURUM AYARLAMA
 export async function setUserStatus(formData: FormData) {
   const user = await getAuthenticatedUser();
-  const statusType = formData.get("statusType") as string; // PRAYER, LUNCH, CUSTOM, CLEAR
+  const statusType = formData.get("statusType") as string;
   const message = formData.get("message") as string;
-  const duration = formData.get("duration") as string; // Dakika cinsinden
+  const duration = formData.get("duration") as string;
 
   let data: any = {};
 
   if (statusType === "CLEAR") {
-    // Durumu sıfırla (Working/On App moduna dön)
     data = { customStatus: null, statusMessage: null, statusExpires: null };
   } else {
-    // Yeni durum ayarla
-    const minutes = parseInt(duration) || 15; // Varsayılan 15 dk
+    const minutes = parseInt(duration) || 15;
     const expiresAt = new Date(Date.now() + minutes * 60000);
 
     data = {
@@ -318,21 +317,17 @@ export async function setUserStatus(formData: FormData) {
 
   revalidatePath("/");
 }
-// 7. GERÇEK ÇEVİRİ FONKSİYONU (Google Translate)
+
+// 11. ÇEVİRİ
 export async function translateText(text: string, targetLang: string) {
   try {
-    // Google Translate API'sine istek atıyoruz (API Key gerektirmez)
-    // autoCorrect: true -> Yazım hatalarını düzeltip çevirir.
     const res = await translate(text, {
       to: targetLang,
       autoCorrect: true,
     });
-
-    // Çevrilen temiz metni döndür
     return res.text;
   } catch (error) {
     console.error("Çeviri Hatası:", error);
-    // Eğer Google servisine ulaşılamazsa (Rate limit vb.), orijinal metni ve hata mesajı döndür
     return `${text} (Çeviri hatası)`;
   }
 }
