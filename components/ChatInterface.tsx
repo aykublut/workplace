@@ -19,10 +19,11 @@ import { pusherClient } from "@/lib/pusher";
 import { motion, AnimatePresence } from "framer-motion";
 
 // TİP TANIMI GÜNCELLENDİ
+// Message tipini bul ve şu şekilde değiştir:
 type Message = {
   id: string;
-  content: string;
-  audioUrl?: string | null; // <-- YENİ
+  content: string | null; // <-- string yanına | null ekledik
+  audioUrl?: string | null;
   senderId: string;
   createdAt: Date | string;
   sender: {
@@ -406,7 +407,9 @@ export default function ChatInterface({
                       {/* ÇEVİRİ BUTONU (Sadece yazı varsa ve ben değilsem) */}
                       {!isMe && msg.content && (
                         <button
-                          onClick={() => handleTranslate(msg.id, msg.content)}
+                          onClick={() =>
+                            handleTranslate(msg.id, msg.content ?? "")
+                          }
                           disabled={isTranslating}
                           className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all active:scale-95 ${isTranslated ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400"}`}
                         >
