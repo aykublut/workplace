@@ -5,6 +5,13 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { pusherServer } from "@/lib/pusher";
 import { translate } from "google-translate-api-x";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const prisma = new PrismaClient();
 
@@ -316,11 +323,43 @@ export async function sendMessage(formData: FormData) {
     if (!user || !user.id) return { success: false, error: "Unauthorized" };
 
     const content = formData.get("content") as string;
-    if (!content) return { success: false };
+    const audioFile = formData.get("audio") as File | null; // Sesi formdan al
+
+    // Boş mesaj kontrolü
+    if (!content && !audioFile) return { success: false };
+
+    let audioUrl = null;
+
+    // --- SES YÜKLEME İŞLEMİ (Buffer Yöntemi) ---
+    if (audioFile) {
+      // Dosyayı Buffer'a çevir (Next.js Server Action için gerekli)
+      const arrayBuffer = await audioFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Cloudinary'ye Stream ile yükle (Promise ile bekliyoruz)
+      const uploadResult = await new Promise<any>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "voice-notes", // Klasör adı
+              resource_type: "video", // Cloudinary ses dosyalarını 'video' kategorisinde tutar
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(buffer);
+      });
+
+      audioUrl = uploadResult.secure_url; // Yüklenen linki al
+    }
+    // -------------------------------------------
 
     const newMessage = await prisma.message.create({
       data: {
-        content,
+        content: content || "",
+        audioUrl: audioUrl,
         senderId: user.id,
       },
       include: {
@@ -338,7 +377,7 @@ export async function sendMessage(formData: FormData) {
     await pusherServer.trigger("chat-channel", "new-message", newMessage);
     return { success: true };
   } catch (error) {
-    console.error("sendMessage Error:", error);
+    console.error("Mesaj Gönderme Hatası:", error);
     return { success: false, error: "Server Error" };
   }
 }

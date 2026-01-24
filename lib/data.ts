@@ -112,6 +112,9 @@ export const dictionaries = {
     rel_secular: "Seküler / Diğer",
     lightMode: "Aydınlık Mod",
     darkMode: "Karanlık Mod",
+
+    seeTranslation: "Çeviriyi gör",
+    seeOriginal: "Orijinali gör",
   },
   en: {
     navHome: "Home",
@@ -220,6 +223,9 @@ export const dictionaries = {
 
     lightMode: "Light Mode",
     darkMode: "Dark Mode",
+
+    seeTranslation: "See translation",
+    seeOriginal: "See original",
   },
   es: {
     navHome: "Inicio",
@@ -328,6 +334,9 @@ export const dictionaries = {
 
     lightMode: "Modo Claro",
     darkMode: "Modo Oscuro",
+
+    seeTranslation: "Ver traducción",
+    seeOriginal: "Ver original",
   },
   fr: {
     navHome: "Accueil",
@@ -438,6 +447,8 @@ export const dictionaries = {
 
     lightMode: "Mode Clair",
     darkMode: "Mode Sombre",
+    seeTranslation: "Voir la traduction",
+    seeOriginal: "Voir l'original",
   },
   pl: {
     navHome: "Start",
@@ -546,6 +557,9 @@ export const dictionaries = {
 
     lightMode: "Tryb Jasny",
     darkMode: "Tryb Ciemny",
+
+    seeTranslation: "Zobacz tłumaczenie",
+    seeOriginal: "Zobacz oryginał",
   },
 };
 

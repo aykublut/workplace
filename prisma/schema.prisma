@@ -35,7 +35,8 @@ model User {
 
 model Message {
   id                String   @id @default(cuid())
-  content           String
+  content           String?
+  audioUrl  String?  // <--- YENİ: Ses Linki
   translatedContent String?
   senderId          String
   sender            User     @relation(fields: [senderId], references: [id])
