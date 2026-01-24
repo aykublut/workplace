@@ -128,12 +128,12 @@ export default async function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="relative w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
+            {/* <button className="relative w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
               <Bell size={20} />
               {data.messageCount > 0 && (
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
               )}
-            </button>
+            </button> */}
             <div className="pl-4 border-l border-slate-200 dark:border-slate-700">
               <UserButton afterSignOutUrl="/" />
             </div>
