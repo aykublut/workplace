@@ -8,9 +8,133 @@ import { translate } from "google-translate-api-x";
 
 const prisma = new PrismaClient();
 
-// 1. KİMLİK DOĞRULAMA & SYNC
+// ------------------------------------------------------------------
+// 1. ZAMAN HESAPLAMA MOTORU (VARŞOVA SAATİ)
+// ------------------------------------------------------------------
+function calculateCompanyStatus() {
+  const now = new Date();
+
+  // Varşova saat dilimine göre formatla
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Warsaw",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const currentTimeString = formatter.format(now); // Örn: "09:45"
+  const [hourStr, minuteStr] = currentTimeString.split(":");
+  const currentHour = parseInt(hourStr);
+  const currentMinute = parseInt(minuteStr);
+
+  // Hesaplama için ondalıklı saat (Örn: 09:30 -> 9.5)
+  const currentTimeValue = currentHour + currentMinute / 60;
+
+  // ŞİRKET TAKVİMİ
+  const SCHEDULE = {
+    START: 9, // 09:00
+    LUNCH_START: 12, // 12:00
+    LUNCH_END: 13, // 13:00
+    END: 17, // 17:00
+  };
+
+  // Varsayılan Durum
+  let status = {
+    stateKey: "status_off", // Durum Başlığı (Mesai Dışı vs.)
+    nextLabelKey: "next_event_start", // Alt Başlık (Mesai Başlangıcı vs.)
+    nextTime: "09:00", // Hedef Saat
+    currentTime: currentTimeString, // Canlı Saat
+    color: "gray", // Kart Rengi
+    progress: 0, // Bar Yüzdesi
+  };
+
+  // A) MESAİ ÖNCESİ (00:00 - 09:00)
+  if (currentTimeValue < SCHEDULE.START) {
+    status = {
+      ...status,
+      stateKey: "status_off",
+      nextLabelKey: "next_event_start",
+      nextTime: "09:00",
+      color: "gray",
+      progress: 0,
+    };
+  }
+  // B) SABAH MESAİSİ (09:00 - 12:00) --> SENİN SORDUĞUN KISIM BURASI
+  else if (
+    currentTimeValue >= SCHEDULE.START &&
+    currentTimeValue < SCHEDULE.LUNCH_START
+  ) {
+    const totalDuration = SCHEDULE.LUNCH_START - SCHEDULE.START;
+    const elapsed = currentTimeValue - SCHEDULE.START;
+    const percent = (elapsed / totalDuration) * 100;
+
+    status = {
+      ...status,
+      stateKey: "status_working",
+      nextLabelKey: "next_event_lunch", // <-- EKRANDA "Öğle Yemeği:" YAZACAK
+      nextTime: "12:00", // <-- HEDEF SAAT 12:00 OLACAK
+      color: "blue",
+      progress: percent,
+    };
+  }
+  // C) ÖĞLE MOLASI (12:00 - 13:00)
+  else if (
+    currentTimeValue >= SCHEDULE.LUNCH_START &&
+    currentTimeValue < SCHEDULE.LUNCH_END
+  ) {
+    const totalDuration = SCHEDULE.LUNCH_END - SCHEDULE.LUNCH_START;
+    const elapsed = currentTimeValue - SCHEDULE.LUNCH_START;
+    const percent = (elapsed / totalDuration) * 100;
+
+    status = {
+      ...status,
+      stateKey: "status_lunch",
+      nextLabelKey: "next_event_back",
+      nextTime: "13:00",
+      color: "orange",
+      progress: percent,
+    };
+  }
+  // D) ÖĞLEDEN SONRA MESAİSİ (13:00 - 17:00)
+  else if (
+    currentTimeValue >= SCHEDULE.LUNCH_END &&
+    currentTimeValue < SCHEDULE.END
+  ) {
+    const totalDuration = SCHEDULE.END - SCHEDULE.LUNCH_END;
+    const elapsed = currentTimeValue - SCHEDULE.LUNCH_END;
+    const percent = (elapsed / totalDuration) * 100;
+
+    status = {
+      ...status,
+      stateKey: "status_working",
+      nextLabelKey: "next_event_end",
+      nextTime: "17:00",
+      color: "green",
+      progress: percent,
+    };
+  }
+  // E) MESAİ SONRASI (17:00 - 23:59)
+  else {
+    status = {
+      ...status,
+      stateKey: "status_off",
+      nextLabelKey: "next_event_start",
+      nextTime: "09:00",
+      color: "gray",
+      progress: 100,
+    };
+  }
+
+  // currentTime'ı her zaman güncel tut (hesaplamadan bağımsız)
+  status.currentTime = currentTimeString;
+
+  return status;
+}
+
+// ------------------------------------------------------------------
+// 2. KİMLİK DOĞRULAMA & SYNC
+// ------------------------------------------------------------------
 async function getAuthenticatedUser() {
-  // DÜZELTME BURADA: auth() başına 'await' eklendi
   const { userId } = await auth();
   const user = await currentUser();
 
@@ -18,7 +142,6 @@ async function getAuthenticatedUser() {
     throw new Error("Giriş yapılmamış!");
   }
 
-  // Kullanıcıyı veritabanıyla eşle
   const dbUser = await prisma.user.upsert({
     where: { id: userId },
     update: {
@@ -31,13 +154,16 @@ async function getAuthenticatedUser() {
       email: user.emailAddresses[0].emailAddress,
       name: `${user.firstName} ${user.lastName}`,
       imageUrl: user.imageUrl,
+      language: "tr",
     },
   });
 
   return dbUser;
 }
 
-// 2. PROFİL GÜNCELLEME
+// ------------------------------------------------------------------
+// 3. PROFİL GÜNCELLEME
+// ------------------------------------------------------------------
 export async function updateProfileSettings(formData: FormData) {
   const language = formData.get("language") as string;
   const culture = formData.get("culture") as string;
@@ -53,7 +179,9 @@ export async function updateProfileSettings(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
-// 3. DASHBOARD VERİSİ
+// ------------------------------------------------------------------
+// 4. DASHBOARD VERİSİ
+// ------------------------------------------------------------------
 export async function getDashboardData() {
   const user = await getAuthenticatedUser();
 
@@ -84,74 +212,22 @@ export async function getDashboardData() {
     orderBy: { lastActiveAt: "desc" },
   });
 
-  // Şirket Zamanı
-  const now = new Date();
-  const companyTimeString = now.toLocaleString("en-US", {
-    timeZone: "Europe/Istanbul",
-  });
-  const companyTime = new Date(companyTimeString);
-
-  const hour = companyTime.getHours();
-  const minute = companyTime.getMinutes();
-  const timeVal = hour + minute / 60;
-
-  let companyStateKey = "status_off";
-  let nextEventTime = "09:00";
-  let nextEventLabelKey = "next_event_start";
-  let shiftProgress = 0;
-  let stateColor = "gray";
-
-  if (timeVal < 9) {
-    companyStateKey = "status_off";
-    nextEventTime = "09:00";
-    nextEventLabelKey = "next_event_start";
-    shiftProgress = 0;
-    stateColor = "gray";
-  } else if (timeVal >= 9 && timeVal < 12) {
-    companyStateKey = "status_working";
-    nextEventTime = "12:00";
-    nextEventLabelKey = "next_event_lunch";
-    shiftProgress = ((timeVal - 9) / 3) * 100;
-    stateColor = "blue";
-  } else if (timeVal >= 12 && timeVal < 13) {
-    companyStateKey = "status_lunch";
-    nextEventTime = "13:00";
-    nextEventLabelKey = "next_event_back";
-    shiftProgress = ((timeVal - 12) / 1) * 100;
-    stateColor = "orange";
-  } else if (timeVal >= 13 && timeVal < 17) {
-    companyStateKey = "status_working";
-    nextEventTime = "17:00";
-    nextEventLabelKey = "next_event_end";
-    shiftProgress = ((timeVal - 13) / 4) * 100;
-    stateColor = "green";
-  } else {
-    companyStateKey = "status_off";
-    nextEventTime = "09:00";
-    nextEventLabelKey = "next_event_start";
-    shiftProgress = 100;
-    stateColor = "gray";
-  }
-
-  const companyStatus = {
-    stateKey: companyStateKey,
-    nextTime: nextEventTime,
-    nextLabelKey: nextEventLabelKey,
-    progress: Math.round(shiftProgress),
-    color: stateColor,
-  };
+  // HESAPLANMIŞ ŞİRKET DURUMUNU AL
+  const companyStatus = calculateCompanyStatus();
 
   return {
-    messageCount,
-    pendingTaskCount,
-    nextBreak: nextEventTime,
-    companyStatus,
     user,
     colleagues,
+    messageCount,
+    pendingTaskCount,
+    companyStatus,
   };
 }
 
-// 4. QUIZ SONUCU
+// ------------------------------------------------------------------
+// 5. YARDIMCI FONKSİYONLAR (QUIZ, TASK, MESAJLAR...)
+// ------------------------------------------------------------------
+
 export async function saveQuizResult(score: number, totalQuestions: number) {
   const user = await getAuthenticatedUser();
   await prisma.quizResult.create({
@@ -160,7 +236,6 @@ export async function saveQuizResult(score: number, totalQuestions: number) {
   revalidatePath("/learn");
 }
 
-// 5. MESAJ OKUNDU
 export async function markMessagesAsRead() {
   const user = await getAuthenticatedUser();
   await prisma.user.update({
@@ -187,7 +262,6 @@ export async function getUserStats() {
   return { totalGames, avgScore };
 }
 
-// 6. GÖREVLER
 export async function getTasks() {
   const user = await getAuthenticatedUser();
   return await prisma.task.findMany({
@@ -219,7 +293,6 @@ export async function deleteTask(taskId: string) {
   revalidatePath("/tasks");
 }
 
-// 7. MESAJLAR (GET)
 export async function getMessages() {
   return await prisma.message.findMany({
     orderBy: { createdAt: "asc" },
@@ -237,15 +310,10 @@ export async function getMessages() {
   });
 }
 
-// 8. MESAJ GÖNDERME
 export async function sendMessage(formData: FormData) {
   try {
     const user = await currentUser();
-
-    if (!user || !user.id) {
-      console.error("HATA: Kullanıcı kimliği doğrulanamadı.");
-      return { success: false, error: "Unauthorized" };
-    }
+    if (!user || !user.id) return { success: false, error: "Unauthorized" };
 
     const content = formData.get("content") as string;
     if (!content) return { success: false };
@@ -268,17 +336,14 @@ export async function sendMessage(formData: FormData) {
     });
 
     await pusherServer.trigger("chat-channel", "new-message", newMessage);
-
     return { success: true };
   } catch (error) {
-    console.error("SUNUCU HATASI (sendMessage):", error);
+    console.error("sendMessage Error:", error);
     return { success: false, error: "Server Error" };
   }
 }
 
-// 9. HEARTBEAT
 export async function updateHeartbeat() {
-  // DÜZELTME BURADA: auth() başına 'await' eklendi
   const { userId } = await auth();
   if (!userId) return;
 
@@ -288,7 +353,6 @@ export async function updateHeartbeat() {
   });
 }
 
-// 10. DURUM AYARLAMA
 export async function setUserStatus(formData: FormData) {
   const user = await getAuthenticatedUser();
   const statusType = formData.get("statusType") as string;
@@ -318,7 +382,6 @@ export async function setUserStatus(formData: FormData) {
   revalidatePath("/");
 }
 
-// 11. ÇEVİRİ
 export async function translateText(text: string, targetLang: string) {
   try {
     const res = await translate(text, {
@@ -327,7 +390,6 @@ export async function translateText(text: string, targetLang: string) {
     });
     return res.text;
   } catch (error) {
-    console.error("Çeviri Hatası:", error);
     return `${text} (Çeviri hatası)`;
   }
 }
