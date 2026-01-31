@@ -2,13 +2,14 @@ import { getDashboardData } from "@/app/actions";
 import {
   MessageCircle,
   CheckSquare,
-  Bell,
+  MessageSquareHeart,
   ArrowRight,
   Briefcase,
   Coffee,
   Moon,
   Sun,
 } from "lucide-react";
+
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { clsx } from "clsx";
@@ -134,6 +135,32 @@ export default async function Home() {
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
               )}
             </button> */}
+            <Link
+              target="_blank" // Yeni sekmede açar
+              rel="noopener noreferrer" // Güvenlik ve performans için şart
+              href="https://docs.google.com/forms/d/e/1FAIpQLSee9KNr0NvPoYen9LzbHswEZ-CS9Pb1OZeyqBFRmVTKkani8A/viewform?usp=header" // Tıklayınca mail atsınlar
+              className="group relative h-10 pl-3 pr-3 rounded-full flex items-center gap-2 transition-all duration-300
+              bg-white border border-slate-200 text-slate-500 shadow-sm
+              hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-indigo-500/20 hover:scale-105 active:scale-95
+              dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500/50 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300"
+            >
+              {/* İkon: Hover olunca hafif döner ve büyür */}
+              <MessageSquareHeart
+                size={18}
+                className="transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110"
+              />
+
+              {/* Yazı: Mobilde de görünsün, çok yer kaplamaz */}
+              <span className="text-xs font-bold tracking-wide hidden sm:inline-block">
+                Feedback
+              </span>
+
+              {/* MAGIC TOUCH: Köşedeki minik "Beni Tıkla" pırıltısı */}
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 border-2 border-white dark:border-slate-900"></span>
+              </span>
+            </Link>
             <div className="pl-4 border-l border-slate-200 dark:border-slate-700">
               <UserButton afterSignOutUrl="/" />
             </div>
